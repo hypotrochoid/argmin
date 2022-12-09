@@ -63,6 +63,10 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018-2022 argmin developers
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
@@ -86,6 +90,8 @@
                 ndarray::Array1::from_iter(min.iter().zip(max.iter()).map(|(a, b)| {
                     <span class="comment">// Do not require a &lt; b:
 
+                    // We do want to know if a and b are *exactly* the same.
+                    </span><span class="attribute">#[allow(clippy::float_cmp)]
                     </span><span class="kw">if </span>a == b {
                         a.clone()
                     } <span class="kw">else if </span>a &lt; b {
@@ -108,7 +114,9 @@
                     <span class="kw">let </span>a = min.get((i, j)).unwrap();
                     <span class="kw">let </span>b = max.get((i, j)).unwrap();
 
-                    <span class="kw">if </span>a == b {
+                    <span class="comment">// We do want to know if a and b are *exactly* the same.
+                    </span><span class="attribute">#[allow(clippy::float_cmp)]
+                    </span><span class="kw">if </span>a == b {
                         a.clone()
                     } <span class="kw">else if </span>a &lt; b {
                         rng.gen_range(a.clone()..b.clone())
