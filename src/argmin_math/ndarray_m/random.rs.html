@@ -57,6 +57,12 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018-2022 argmin developers
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
@@ -64,57 +70,63 @@
 // http://opensource.org/licenses/MIT&gt;, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::ArgminRandom;
-<span class="kw">use </span>rand::distributions::uniform::SampleUniform;
-<span class="kw">use </span>rand::Rng;
+</span><span class="kw">use </span>rand::Rng;
 
-<span class="kw">impl</span>&lt;T&gt; ArgminRandom <span class="kw">for </span>ndarray::Array1&lt;T&gt;
-<span class="kw">where
-    </span>T: SampleUniform + std::cmp::PartialOrd + Clone,
-{
-    <span class="kw">fn </span>rand_from_range(min: <span class="kw-2">&amp;</span><span class="self">Self</span>, max: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; ndarray::Array1&lt;T&gt; {
-        <span class="macro">assert!</span>(!min.is_empty());
-        <span class="macro">assert_eq!</span>(min.len(), max.len());
+<span class="kw">use </span><span class="kw">crate</span>::ArgminRandom;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng();
+<span class="macro">macro_rules! </span>make_random {
+    (<span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        <span class="kw">impl </span>ArgminRandom <span class="kw">for </span>ndarray::Array1&lt;<span class="macro-nonterminal">$t</span>&gt; {
+            <span class="kw">fn </span>rand_from_range(min: <span class="kw-2">&amp;</span><span class="self">Self</span>, max: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; ndarray::Array1&lt;<span class="macro-nonterminal">$t</span>&gt; {
+                <span class="macro">assert!</span>(!min.is_empty());
+                <span class="macro">assert_eq!</span>(min.len(), max.len());
 
-        ndarray::Array1::from_iter(min.iter().zip(max.iter()).map(|(a, b)| {
-            <span class="comment">// Do not require a &lt; b:
+                <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng();
 
-            </span><span class="kw">if </span>a == b {
-                a.clone()
-            } <span class="kw">else if </span>a &lt; b {
-                rng.gen_range(a.clone()..b.clone())
-            } <span class="kw">else </span>{
-                rng.gen_range(b.clone()..a.clone())
+                ndarray::Array1::from_iter(min.iter().zip(max.iter()).map(|(a, b)| {
+                    <span class="comment">// Do not require a &lt; b:
+
+                    </span><span class="kw">if </span>a == b {
+                        a.clone()
+                    } <span class="kw">else if </span>a &lt; b {
+                        rng.gen_range(a.clone()..b.clone())
+                    } <span class="kw">else </span>{
+                        rng.gen_range(b.clone()..a.clone())
+                    }
+                }))
             }
-        }))
-    }
+        }
+
+        <span class="kw">impl </span>ArgminRandom <span class="kw">for </span>ndarray::Array2&lt;<span class="macro-nonterminal">$t</span>&gt; {
+            <span class="kw">fn </span>rand_from_range(min: <span class="kw-2">&amp;</span><span class="self">Self</span>, max: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; ndarray::Array2&lt;<span class="macro-nonterminal">$t</span>&gt; {
+                <span class="macro">assert!</span>(!min.is_empty());
+                <span class="macro">assert_eq!</span>(min.raw_dim(), max.raw_dim());
+
+                <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng();
+
+                ndarray::Array2::from_shape_fn(min.raw_dim(), |(i, j)| {
+                    <span class="kw">let </span>a = min.get((i, j)).unwrap();
+                    <span class="kw">let </span>b = max.get((i, j)).unwrap();
+
+                    <span class="kw">if </span>a == b {
+                        a.clone()
+                    } <span class="kw">else if </span>a &lt; b {
+                        rng.gen_range(a.clone()..b.clone())
+                    } <span class="kw">else </span>{
+                        rng.gen_range(b.clone()..a.clone())
+                    }
+                })
+            }
+        }
+    };
 }
 
-<span class="kw">impl</span>&lt;T&gt; ArgminRandom <span class="kw">for </span>ndarray::Array2&lt;T&gt;
-<span class="kw">where
-    </span>T: SampleUniform + std::cmp::PartialOrd + Clone,
-{
-    <span class="kw">fn </span>rand_from_range(min: <span class="kw-2">&amp;</span><span class="self">Self</span>, max: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; ndarray::Array2&lt;T&gt; {
-        <span class="macro">assert!</span>(!min.is_empty());
-        <span class="macro">assert_eq!</span>(min.raw_dim(), max.raw_dim());
-
-        <span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng();
-
-        ndarray::Array2::from_shape_fn(min.raw_dim(), |(i, j)| {
-            <span class="kw">let </span>a = min.get((i, j)).unwrap();
-            <span class="kw">let </span>b = max.get((i, j)).unwrap();
-
-            <span class="kw">if </span>a == b {
-                a.clone()
-            } <span class="kw">else if </span>a &lt; b {
-                rng.gen_range(a.clone()..b.clone())
-            } <span class="kw">else </span>{
-                rng.gen_range(b.clone()..a.clone())
-            }
-        })
-    }
-}
+<span class="macro">make_random!</span>(isize);
+<span class="macro">make_random!</span>(i8);
+<span class="macro">make_random!</span>(i16);
+<span class="macro">make_random!</span>(i32);
+<span class="macro">make_random!</span>(i64);
+<span class="macro">make_random!</span>(f32);
+<span class="macro">make_random!</span>(f64);
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="argmin_math" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>
